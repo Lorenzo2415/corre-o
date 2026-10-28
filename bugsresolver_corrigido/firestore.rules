@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /ocorrencias/{id} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.autorId == request.auth.uid;
+      // só o dono altera o status, e somente o campo "resolvido"
+      allow update: if request.auth != null
+                    && resource.data.autorId == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['resolvido']);
+      allow delete: if false;
+
+      match /pistas/{pid} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null
+                      && request.resource.data.autorId == request.auth.uid;
+        allow update, delete: if false;
+      }
+    }
+  }
+}
